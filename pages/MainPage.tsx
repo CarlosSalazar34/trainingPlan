@@ -2,11 +2,13 @@ import {
     StyleSheet, Text, View, ScrollView, Dimensions,
     TouchableOpacity, Animated
 } from 'react-native';
-import { BottomSheet } from '../components/BottomSheet';
-import { useRef, useEffect, useState } from 'react';
+import { CreateTrainingSheet } from '../components/CreateTrainingSheet';
+import { useRef, useEffect, useState, useContext } from 'react';
 import { Header } from '../components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomAppBar } from '../components/BottomAppBar';
+import { TrainingSheetContext } from '../context/TrainingSheetContext';
+
 
 interface TrainingData {
     trainingName: string;
@@ -24,13 +26,17 @@ interface ExerciseData {
 }
 
 
+
 export const MainPage = () => {
+    const [activeTab, setActiveTab] = useState('Inicio');
     const translateAnim = useRef(new Animated.Value(-100)).current;
-    const [create, setCreate] = useState(false);
     const opacityAnim = useRef(new Animated.Value(0)).current;
     const cardsTranslateAnim = useRef(new Animated.Value(-30)).current;
+    const { setVisible } = useContext(TrainingSheetContext);
 
     const animateCards = () => {
+        opacityAnim.setValue(0);
+        cardsTranslateAnim.setValue(-30);
         Animated.parallel([
             Animated.timing(
                 opacityAnim,
@@ -52,32 +58,15 @@ export const MainPage = () => {
     }
 
     const trains: TrainingData[] = [
+        // ... (existing trains)
         {
             trainingName: 'Pecho y Tríceps',
             trainingDescription: 'Un entrenamiento intenso para desarrollar la fuerza y el tamaño de los músculos del pecho y los tríceps.',
             muscleGroup: 'Pecho y Tríceps',
             exercises: [
-                {
-                    exerciseName: 'Press de Banca',
-                    sets: 3,
-                    reps: 10,
-                    weight: 100,
-                    rest: 60,
-                },
-                {
-                    exerciseName: 'Press Inclinado',
-                    sets: 3,
-                    reps: 10,
-                    weight: 100,
-                    rest: 60,
-                },
-                {
-                    exerciseName: 'Fondos',
-                    sets: 3,
-                    reps: 10,
-                    weight: 100,
-                    rest: 60,
-                },
+                { exerciseName: 'Press de Banca', sets: 3, reps: 10, weight: 100, rest: 60 },
+                { exerciseName: 'Press Inclinado', sets: 3, reps: 10, weight: 100, rest: 60 },
+                { exerciseName: 'Fondos', sets: 3, reps: 10, weight: 100, rest: 60 },
             ],
         },
         {
@@ -103,6 +92,7 @@ export const MainPage = () => {
     ]
 
     const translate = () => {
+        translateAnim.setValue(-100);
         Animated.spring(
             translateAnim,
             {
@@ -116,103 +106,130 @@ export const MainPage = () => {
     useEffect(() => {
         translate();
         animateCards();
-    }, [])
+    }, [activeTab])
+
+    const renderHome = () => (
+        <ScrollView contentContainerStyle={{
+            alignItems: 'center',
+            paddingVertical: 16,
+            paddingBottom: 120,
+        }} style={{ flex: 1, width: '100%' }}>
+            <Animated.View style={{
+                width: Dimensions.get('window').width * 0.92,
+                transform: [{ translateY: translateAnim }],
+                backgroundColor: 'black',
+                borderRadius: 24,
+                padding: 24,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.3,
+                shadowRadius: 20,
+                elevation: 10,
+            }}>
+                <Ionicons name="fitness" size={48} color="#A7FF83" style={{ marginBottom: 20 }} />
+                <Text style={{
+                    fontSize: 36,
+                    color: 'white',
+                    fontWeight: '600',
+                    lineHeight: 42,
+                }}>Bienvenido, Carlos</Text>
+
+                <Text style={{
+                    fontSize: 16,
+                    marginTop: 12,
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    fontWeight: '400',
+                    lineHeight: 24,
+                }}>¿En qué consiste tu entrenamiento hoy?</Text>
+            </Animated.View>
+
+            <View style={{ marginTop: 24, width: '100%', alignItems: 'center' }}>
+                <TouchableOpacity
+                    onPress={() => setVisible(true)}
+                    style={{
+                        width: Dimensions.get('window').width * 0.92,
+                        height: 70,
+                        borderRadius: 20,
+                        backgroundColor: 'white',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        elevation: 4,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 8,
+                    }}
+                >
+                    <Ionicons name="add-circle" size={28} color="black" style={{ marginRight: 12 }} />
+                    <Text style={{ color: 'black', fontSize: 18, fontWeight: '600' }}>Crear nuevo entrenamiento</Text>
+                </TouchableOpacity>
+
+                {
+                    trains.map((train, index) => {
+                        return (
+                            <Animated.View
+                                key={index}
+                                style={{
+                                    marginTop: 24,
+                                    width: Dimensions.get('window').width * 0.92,
+                                    borderRadius: 20,
+                                    backgroundColor: 'white',
+                                    padding: 24,
+                                    elevation: 4,
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.1,
+                                    shadowRadius: 8,
+                                    opacity: opacityAnim,
+                                    transform: [{ translateY: cardsTranslateAnim }]
+                                }}
+                            >
+                                <Text style={{ fontSize: 24, fontWeight: '600' }}>{train.trainingName}</Text>
+                                <Text style={{ fontSize: 16, marginTop: 12, color: 'rgba(0, 0, 0, 0.6)', fontWeight: '400', lineHeight: 24, }}>{train.trainingDescription}</Text>
+                            </Animated.View>
+                        )
+                    })
+                }
+            </View>
+        </ScrollView>
+    );
+
+    const renderPlaceholder = (title: string) => (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <Ionicons name="construct-outline" size={64} color="black" style={{ marginBottom: 20 }} />
+            <Text style={{ fontSize: 24, fontWeight: '700' }}>{title}</Text>
+            <Text style={{ fontSize: 16, color: 'gray', marginTop: 10, textAlign: 'center' }}>
+                Esta sección está bajo construcción. ¡Vuelve pronto!
+            </Text>
+        </View>
+    );
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'Inicio':
+                return renderHome();
+            case 'Entrenamientos':
+                return renderPlaceholder('Mis Entrenamientos');
+            case 'Progreso':
+                return renderPlaceholder('Mi Progreso');
+            case 'Perfil':
+                return renderPlaceholder('Mi Perfil');
+            default:
+                return renderHome();
+        }
+    };
 
     return (
         <View style={styles.container}>
             <Header />
-            <ScrollView contentContainerStyle={{
-                alignItems: 'center',
-                paddingVertical: 16,
-                paddingBottom: 100,
-            }} style={{ flex: 1, width: '100%' }}>
-                <Animated.View style={{
-                    width: Dimensions.get('window').width * 0.92,
-                    transform: [{ translateY: translateAnim }],
-                    backgroundColor: 'black',
-                    borderRadius: 24,
-                    padding: 24,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 20,
-                    elevation: 10,
-                }}>
-                    <Ionicons name="fitness" size={48} color="#A7FF83" style={{ marginBottom: 20 }} />
-                    <Text style={{
-                        fontSize: 36,
-                        color: 'white',
-                        fontWeight: '600',
-                        lineHeight: 42,
-                    }}>Bienvenido, Carlos</Text>
-
-                    <Text style={{
-                        fontSize: 16,
-                        marginTop: 12,
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontWeight: '400',
-                        lineHeight: 24,
-                    }}>¿En qué consiste tu entrenamiento hoy?</Text>
-                </Animated.View>
-
-                <View style={{ marginTop: 24, width: '100%', alignItems: 'center' }}>
-                    <TouchableOpacity
-                        onPress={() => setCreate(true)}
-                        style={{
-                            width: Dimensions.get('window').width * 0.92,
-                            height: 70,
-                            borderRadius: 20,
-                            backgroundColor: 'white',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            elevation: 4,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 8,
-                        }}
-                    >
-                        <Ionicons name="add-circle" size={28} color="black" style={{ marginRight: 12 }} />
-                        <Text style={{ color: 'black', fontSize: 18, fontWeight: '600' }}>Crear nuevo entrenamiento</Text>
-                    </TouchableOpacity>
-
-                    {
-                        trains.map((train, index) => {
-                            return (
-                                <Animated.View
-                                    key={index}
-                                    style={{
-                                        marginTop: 24,
-                                        width: Dimensions.get('window').width * 0.92,
-                                        borderRadius: 20,
-                                        backgroundColor: 'white',
-                                        padding: 24,
-                                        elevation: 4,
-                                        shadowColor: '#000',
-                                        shadowOffset: { width: 0, height: 4 },
-                                        shadowOpacity: 0.1,
-                                        shadowRadius: 8,
-                                        opacity: opacityAnim,
-                                        transform: [{ translateY: cardsTranslateAnim }]
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 24, fontWeight: '600' }}>{train.trainingName}</Text>
-                                    <Text style={{ fontSize: 16, marginTop: 12, color: 'rgba(0, 0, 0, 0.6)', fontWeight: '400', lineHeight: 24, }}>{train.trainingDescription}</Text>
-                                </Animated.View>
-                            )
-                        })
-                    }
-                </View>
-
-            </ScrollView>
-            <BottomAppBar />
-            <BottomSheet visible={create} onClose={() => setCreate(false)}>
-                <Text style={{ fontSize: 24, fontWeight: '600', color: 'black', width: '100%' }}>Nuevo entrenamiento</Text>
-            </BottomSheet>
+            {renderContent()}
+            <BottomAppBar activeTab={activeTab} onTabChange={setActiveTab} />
+            <CreateTrainingSheet />
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {

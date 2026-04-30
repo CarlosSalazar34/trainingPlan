@@ -1,16 +1,16 @@
 import { Animated, Dimensions, Text, View, TouchableWithoutFeedback, StyleSheet } from "react-native"
 import { useRef, useEffect } from "react"
 
-const { height } = Dimensions.get('window');
+const { height: windowHeight } = Dimensions.get('window');
 
 export const BottomSheet = ({ visible, onClose, children }: { visible: boolean, onClose?: () => void, children: React.ReactNode }) => {
-    const translateY = useRef(new Animated.Value(height)).current;
+    const translateY = useRef(new Animated.Value(windowHeight)).current;
     const opacity = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         Animated.parallel([
             Animated.spring(translateY, {
-                toValue: visible ? 0 : height,
+                toValue: visible ? 0 : windowHeight,
                 // duration: 300,
                 useNativeDriver: true,
                 friction: 9,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: height * 0.8,
+        height: windowHeight * 0.8,
         backgroundColor: 'white',
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,

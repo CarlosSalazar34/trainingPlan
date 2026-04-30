@@ -2,13 +2,20 @@ import { Ionicons } from "@expo/vector-icons"
 import { View, TouchableOpacity } from "react-native"
 
 
-export const BottomAppBar = () => {
+
+interface BottomAppBarProps {
+    activeTab: string;
+    onTabChange: (tab: string) => void;
+}
+
+export const BottomAppBar = ({ activeTab, onTabChange }: BottomAppBarProps) => {
     const options = [
-        { icon: 'home-outline', label: 'Inicio' },
-        { icon: 'fitness-outline', label: 'Entrenamientos' },
-        { icon: 'bar-chart-outline', label: 'Progreso' },
-        { icon: 'person-outline', label: 'Perfil' },
+        { icon: 'home-outline', activeIcon: 'home', label: 'Inicio' },
+        { icon: 'fitness-outline', activeIcon: 'fitness', label: 'Entrenamientos' },
+        { icon: 'bar-chart-outline', activeIcon: 'bar-chart', label: 'Progreso' },
+        { icon: 'person-outline', activeIcon: 'person', label: 'Perfil' },
     ] as const;
+
     return (
         <View style={{
             position: 'absolute',
@@ -27,18 +34,28 @@ export const BottomAppBar = () => {
             paddingBottom: 40,
         }}>
             {
-                options.map((item, index) => (
-                    <TouchableOpacity
-                        key={index}
-                    >
-                        <Ionicons
-                            name={item.icon}
-                            size={24}
-                            color="white"
-                        />
-                    </TouchableOpacity>
-                ))
+                options.map((item, index) => {
+                    const isActive = activeTab === item.label;
+                    return (
+                        <TouchableOpacity
+                            key={index}
+                            onPress={() => onTabChange(item.label)}
+                            style={{
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 50,
+                                height: 50,
+                            }}
+                        >
+                            <Ionicons
+                                name={isActive ? item.activeIcon : item.icon}
+                                size={26}
+                                color={isActive ? "#A7FF83" : "rgba(255, 255, 255, 0.5)"}
+                            />
+                        </TouchableOpacity>
+                    );
+                })
             }
         </View>
     )
-}
+}
