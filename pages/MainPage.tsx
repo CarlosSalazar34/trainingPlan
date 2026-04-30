@@ -1,6 +1,6 @@
 import {
     StyleSheet, Text, View, ScrollView, Dimensions,
-    TouchableOpacity, Animated, TextInput
+    TouchableOpacity, Animated
 } from 'react-native';
 import { BottomSheet } from '../components/BottomSheet';
 import { useRef, useEffect, useState } from 'react';
